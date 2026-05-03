@@ -52,7 +52,16 @@ router.post('/', verifyToken, checkRole('renter'), (req, res) => {
 router.get('/renter/my', verifyToken, checkRole('renter'), (req, res) => {
     const renter_id = req.user.user_id;
 
-    const sql = "SELECT * FROM bookings WHERE renter_id = ?";
+    const sql = `SELECT 
+  b.*, 
+  m.machine_name,
+  u.name AS owner_name,
+  u.phone AS owner_contact,
+  m.location AS machine_location
+  FROM bookings b
+  JOIN machines m ON b.machine_id = m.machine_id
+  JOIN users u ON b.owner_id = u.user_id
+  WHERE b.renter_id = ?`;
 
     pool.query(sql, [renter_id], (err, data) => {
         if (err) return res.send(result.createResult(err));
@@ -68,11 +77,15 @@ router.get('/renter/my', verifyToken, checkRole('renter'), (req, res) => {
 router.get('/owner/my', verifyToken, checkRole('owner'), (req, res) => {
     const owner_id = req.user.user_id;
 
-    const sql = "SELECT * FROM bookings WHERE owner_id = ?";
+    const sql = `SELECT b.*, m.machine_name, u.name AS renter_name
+        FROM bookings b
+        JOIN machines m ON b.machine_id = m.machine_id
+        JOIN users u ON b.renter_id = u.user_id
+        WHERE b.owner_id = ?`;
 
     pool.query(sql, [owner_id], (err, data) => {
         if (err) return res.send(result.createResult(err));
-
+        console.log("OWNER BOOKINGS:", data); // 🔥 DEBUG
         res.send(result.createResult(null, data));
     });
 });

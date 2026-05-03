@@ -36,16 +36,23 @@ router.post('/', verifyToken, checkRole('owner'), (req, res) => {
 //  GET ALL MACHINES (PUBLIC)
 
 router.get('/', (req, res) => {
-    const sql = "SELECT * FROM machines WHERE availability = TRUE";
+    const { search } = req.query;
 
-    pool.query(sql, (err, data) => {
+    let sql = "SELECT * FROM machines WHERE availability = TRUE";
+    let values = [];
+
+    // 🔍 Search by machine name
+    if (search) {
+        sql += " AND machine_name LIKE ?";
+        values.push(`%${search}%`);
+    }
+
+    pool.query(sql, values, (err, data) => {
         if (err) return res.send(result.createResult(err));
 
         res.send(result.createResult(null, data));
     });
 });
-
-
 
 // GET MACHINE BY ID
 
@@ -65,8 +72,6 @@ router.get('/:id', (req, res) => {
     });
 });
 
-
-
 //  GET OWNER'S MACHINES
 
 router.get('/owner/my', verifyToken, checkRole('owner'), (req, res) => {
@@ -80,6 +85,7 @@ router.get('/owner/my', verifyToken, checkRole('owner'), (req, res) => {
         res.send(result.createResult(null, data));
     });
 });
+
 
 
 

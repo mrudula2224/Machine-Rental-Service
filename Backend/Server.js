@@ -1,10 +1,12 @@
 const express = require('express');
-//const cors = require('cors');
+const cors = require('cors');
 
+  
 const app = express();
 const port = 2000;
 
 // Middleware
+app.use(cors()); 
 app.use(express.json()); // parse json data
 
 //Routes
